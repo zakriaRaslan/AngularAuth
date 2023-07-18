@@ -7,12 +7,15 @@ import { LoginComponent } from './Components/login/login.component';
 import { SignUpComponent } from './Components/sign-up/sign-up.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { DashboardComponent } from './Components/dashboard/dashboard.component';
 import { NgToastModule } from 'ng-angular-popup'
+import { TokenInterceptor } from './Interceptors/token.interceptor';
+import { NavBarComponent } from './Components/nav-bar/nav-bar.component';
+import { SideNavbarComponent } from './Components/side-navbar/side-navbar.component';
 
 @NgModule({
-  declarations: [AppComponent, LoginComponent, SignUpComponent,  DashboardComponent],
+  declarations: [AppComponent, LoginComponent, SignUpComponent,  DashboardComponent, NavBarComponent, SideNavbarComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -21,7 +24,13 @@ import { NgToastModule } from 'ng-angular-popup'
     HttpClientModule,
     NgToastModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide:HTTP_INTERCEPTORS,
+      useClass:TokenInterceptor,
+      multi:true
+    }
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

@@ -14,7 +14,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import validForm from 'src/app/Helpers/validForm';
 import { AuthApiService } from 'src/app/Services/auth-api.service';
-import { NgToastService } from 'ng-angular-popup'
+import { NgToastService } from 'ng-angular-popup';
+import { UserStoreService } from 'src/app/Services/user-store.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -32,7 +33,8 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthApiService,
     private router: Router,
-    private toast:NgToastService
+    private toast: NgToastService,
+    private userStore: UserStoreService
   ) {}
 
   ngOnInit(): void {
@@ -45,14 +47,26 @@ export class LoginComponent implements OnInit {
   loginSubmit() {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).subscribe({
-        next: (res => {
-          this.toast.success({detail:"Success",summary:res.message,duration:5000})
+        next: (res) => {
+          this.toast.success({
+            detail: 'Success',
+            summary: res.message,
+            duration: 5000,
+          });
           this.loginForm.reset();
+          this.authService.addToken(res.token);
+          const userPayload = this.authService.decodedToken();
+          this.userStore.setFullNameForStore(userPayload.unique_name);
+          this.userStore.setRoleForStore(userPayload.role);
           this.router.navigate(['dashboard']);
-        }),
-        error:(err=>{
-          this.toast.error({detail:"Error",summary:err.message,duration:5000})
-        })
+        },
+        error: (err) => {
+          this.toast.error({
+            detail: 'Error',
+            summary: err.error.message,
+            duration: 5000,
+          });
+        },
       });
     } else {
       //Send Validation

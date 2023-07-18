@@ -28,7 +28,7 @@ export class SignUpComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthApiService,
     private router: Router,
-    private toast:NgToastService
+    private toast: NgToastService
   ) {}
 
   ngOnInit(): void {
@@ -43,18 +43,24 @@ export class SignUpComponent implements OnInit {
 
   signUp() {
     if (this.signupForm.valid) {
-      this.authService.signUp(this.signupForm.value)
-      .subscribe({
-        next:(res => {
-        this.toast.success({detail:"Success",summary:res.message,duration:5000})
+      this.authService.signUp(this.signupForm.value).subscribe({
+        next: (res) => {
+          this.toast.success({
+            detail: 'Success',
+            summary: res.message,
+            duration: 5000,
+          });
           this.signupForm.reset();
           this.router.navigate(['login']);
-        })
-        ,error: (err => {
-          this.toast.error({detail:"Error",summary:err.message,duration:5000})
-        })
-      })
-      console.log(this.signupForm.value)
+        },
+        error: (err) => {
+          this.toast.error({
+            detail: 'Error',
+            summary: err.error.message,
+            duration: 5000,
+          });
+        },
+      });
     } else {
       validForm.validAllFormFields(this.signupForm);
     }
