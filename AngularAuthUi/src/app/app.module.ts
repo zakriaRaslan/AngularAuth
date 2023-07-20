@@ -13,9 +13,11 @@ import { NgToastModule } from 'ng-angular-popup'
 import { TokenInterceptor } from './Interceptors/token.interceptor';
 import { NavBarComponent } from './Components/nav-bar/nav-bar.component';
 import { SideNavbarComponent } from './Components/side-navbar/side-navbar.component';
+import { HomeComponent } from './Components/home/home.component';
+import { UsersListComponent } from './Components/users-list/users-list.component';
 
 @NgModule({
-  declarations: [AppComponent, LoginComponent, SignUpComponent,  DashboardComponent, NavBarComponent, SideNavbarComponent],
+  declarations: [AppComponent, LoginComponent, SignUpComponent,  DashboardComponent, NavBarComponent, SideNavbarComponent, HomeComponent, UsersListComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

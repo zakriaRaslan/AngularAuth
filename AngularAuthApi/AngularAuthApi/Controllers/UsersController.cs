@@ -1,12 +1,14 @@
 ﻿using AngularAuthApi.Data;
 using AngularAuthApi.Helpers;
 using AngularAuthApi.Models;
+using AngularAuthApi.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -45,11 +47,19 @@ namespace AngularAuthApi.Controllers
                 });
             }
             user.Token = CreateJwtToken(user);
-            return Ok(new
+            var newAccessToken = user.Token;
+            var newRefreshToken = CreateRefreshToken();
+            user.RefreshToken = newRefreshToken;
+            user.Token = newAccessToken;
+            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(5);
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+            return Ok(new TokenApiDto()
             {
-                Token = user.Token,
-                Message = "Login Successfuly"
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
             });
+
         }
 
         [HttpPost("register")]
@@ -89,6 +99,35 @@ namespace AngularAuthApi.Controllers
                 message = "Registered Successfuly"
             });
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh(TokenApiDto tokenapiDto)
+        {
+            if (tokenapiDto == null)
+            {
+                return BadRequest("Invalid Client Request");
+            }
+            string accesstoken = tokenapiDto.AccessToken;
+            string refreshToken = tokenapiDto.RefreshToken;
+            var principal = GetPrincipalFromExpiredToken(accesstoken);
+            var userName = principal.Identity.Name;
+            var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == userName);
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+            {
+                return BadRequest("Invalid Request");
+            }
+            var newAccessToken = CreateJwtToken(user);
+            var newRefreshToken = CreateRefreshToken();
+            user.RefreshToken = newRefreshToken;
+            // user.Token = newAccessToken;
+            await _context.SaveChangesAsync();
+            return Ok(new TokenApiDto()
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            });
+        }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
@@ -129,7 +168,7 @@ namespace AngularAuthApi.Controllers
             var identity = new ClaimsIdentity(new Claim[]
             {
                 new Claim(ClaimTypes.Role, user.Role),
-                new Claim(ClaimTypes.Name,$"{user.FirstName} {user.LastName}")
+                new Claim(ClaimTypes.Name,$"{user.UserName}"),
             });
 
             var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
@@ -137,12 +176,46 @@ namespace AngularAuthApi.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = identity,
-                Expires = DateTime.UtcNow.AddDays(1),
+                Expires = DateTime.UtcNow.AddSeconds(20),
                 SigningCredentials = credentials,
             };
 
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);
             return jwtTokenHandler.WriteToken(token);
+        }
+
+        private string CreateRefreshToken()
+        {
+            var tokenBytes = RandomNumberGenerator.GetBytes(64);
+            var refreshToken = Convert.ToBase64String(tokenBytes);
+            var tokenInUser = _context.Users.Any(x => x.RefreshToken == refreshToken);
+            if (tokenInUser)
+            {
+                return CreateRefreshToken();
+            }
+            return refreshToken;
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string expiredToken)
+        {
+            var key = Encoding.UTF8.GetBytes("veryverySercrit.....");
+            var tokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = false,
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken securityToken;
+            var principal = tokenHandler.ValidateToken(expiredToken, tokenValidationParameters, out securityToken);
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new SecurityTokenException("This Token Is Invalid");
+            }
+            return principal;
         }
     }
 }

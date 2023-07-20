@@ -1,6 +1,9 @@
 <app-nav-bar></app-nav-bar>
 <div class="row">
-  <div class="col-3 side-nav ">
+  <div class="col-2 side-nav" *ngIf="role==='Admin'">
 <app-side-navbar></app-side-navbar>
+</div>
+<div class="col">
+  <app-users-list></app-users-list>
 </div>
 </div>
