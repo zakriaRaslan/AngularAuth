@@ -75,3 +75,15 @@ D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthAp
 D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\obj\Debug\net7.0\AngularAuthApi.pdb
 D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\obj\Debug\net7.0\AngularAuthApi.genruntimeconfig.cache
 D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\obj\Debug\net7.0\ref\AngularAuthApi.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\MailKit.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\MimeKit.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\NETCore.MailKit.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\BouncyCastle.Crypto.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\AngularAuthApi.staticwebassets.runtime.json
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\Microsoft.AspNetCore.Cryptography.Internal.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\Microsoft.AspNetCore.Identity.UI.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\Microsoft.Extensions.FileProviders.Embedded.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\Microsoft.Extensions.Identity.Core.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\Microsoft.Extensions.Identity.Stores.dll
+D:\courses\0my_projects\Github-projects\AngularAuth\AngularAuthApi\AngularAuthApi\bin\Debug\net7.0\Microsoft.Extensions.Options.dll

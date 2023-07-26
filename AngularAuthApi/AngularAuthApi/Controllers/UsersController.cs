@@ -2,6 +2,7 @@
 using AngularAuthApi.Helpers;
 using AngularAuthApi.Models;
 using AngularAuthApi.Models.Dto;
+using AngularAuthApi.Utility_Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using EmailModel = AngularAuthApi.Models.EmailModel;
 
 namespace AngularAuthApi.Controllers
 {
@@ -19,10 +21,13 @@ namespace AngularAuthApi.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
-
-        public UsersController(AppDbContext context)
+        private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
+        public UsersController(AppDbContext context, IConfiguration config, IEmailService emailService)
         {
             _context = context;
+            _config = config;
+            _emailService = emailService;
         }
 
 
@@ -58,6 +63,7 @@ namespace AngularAuthApi.Controllers
             {
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
+                Message = "Login Successfully"
             });
 
         }
@@ -134,6 +140,66 @@ namespace AngularAuthApi.Controllers
         {
             var result = await _context.Users.ToListAsync();
             return Ok(result);
+        }
+
+        [HttpPost("send-reset-email/{email}")]
+        public async Task<IActionResult> SendEmail(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    StatusCode = 404,
+                    Message = "Email Does'nt Exist"
+                });
+            }
+            var tokenBytes = RandomNumberGenerator.GetBytes(64);
+            var emailToken = Convert.ToBase64String(tokenBytes);
+            user.ResetPasswordToken = emailToken;
+            user.RefreshTokenExpiryTime = DateTime.Now.AddMinutes(15);
+            string from = _config["EmailSettings:From"];
+            var emailModel = new EmailModel(email, "Reset Password!", EmailBody.EmailStringBody(email, emailToken));
+            _emailService.SendEmail(emailModel);
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return Ok(new
+            {
+                statusCode = 200,
+                Message = "Email Sent"
+            });
+        }
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPassword)
+        {
+            var newToken = resetPassword.EmailToken.Replace(" ", "+");
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == resetPassword.Email);
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    StatusCode = 404,
+                    Message = "Email Does'nt Exist"
+                });
+            }
+            var tokenCode = user.ResetPasswordToken;
+            DateTime EmailTokenExpiry = user.RefreshTokenExpiryTime;
+            if (tokenCode != resetPassword.EmailToken || EmailTokenExpiry < DateTime.Now)
+            {
+                return BadRequest(new
+                {
+                    statusCode = 400,
+                    Message = "Invalid Reset Link"
+                });
+            }
+            user.Password = PasswordHasher.HashPassword(resetPassword.NewPassword);
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return Ok(new
+            {
+                statusCode = 200,
+                Message = "Password Reset Successfuly"
+            });
         }
         private async Task<bool> UserNameIsExist(string username)
         {
